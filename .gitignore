@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.DS_Store
+.aws/
+.agents/
+__pycache__/
+
+docs/
+AGENTS.md

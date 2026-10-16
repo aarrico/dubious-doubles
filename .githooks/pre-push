@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+# Consume Git's ref update list before handing stdin to build tools.
+cat >/dev/null
+exec make verify
