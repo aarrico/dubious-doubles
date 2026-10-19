@@ -1,6 +1,6 @@
 # Dubious Doubles backend
 
-The runnable foundation uses Go, PostgreSQL, pgx, and Goose. Catalog queries will use sqlc as that feature is implemented. See the [project README](../README.md) for the planned experience and current status. Catalog, team, and analysis endpoints are not implemented yet.
+The runnable foundation uses Go, PostgreSQL, pgx, and Goose. sqlc generates catalog models and query methods for pgx. See the [project README](../README.md) for the planned experience and current status. Catalog, team, and analysis endpoints are not implemented yet.
 
 ## Start locally
 
@@ -39,6 +39,18 @@ The migration image pins Goose v3.29.0. SQL migrations live in `migrations`; use
 make reset
 ```
 
+## Generate database code
+
+From `backend/`, run:
+
+```sh
+go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1 generate
+```
+
+This requires Go (the module pins its version). `sqlc.yaml` reads the Goose migrations and named SQL queries in `queries/`, then generates Go models, enum types, and query methods in `internal/db/` using pgx/v5. No running database or applied migrations are required for generation.
+
+The initial query is `GetPokemon`, which looks up a Pokémon by its integer database ID. Add named queries to `queries/` and rerun generation as needed. Edit the SQL or configuration, not the generated Go files. Keep generated types inside persistence code rather than exposing them as API contracts.
+
 ## Configuration and health
 
 | API environment | Default | Behavior |
@@ -66,4 +78,4 @@ make integration
 
 GitHub Actions runs these commands in jobs named `verify` and `integration`. Local checks do not establish hosted results. Repository branch rules are configured separately in GitHub.
 
-Images are pinned by digest in Dockerfile/Compose; pgx is pinned with module checksums. The initial sqlc selection is v1.31.1; generation and generated-code verification will accompany the catalog queries. Tool references: [Goose SQL annotations](https://pressly.github.io/goose/documentation/annotations/), [pgxpool](https://pkg.go.dev/github.com/jackc/pgx/v5/pgxpool), [PostgreSQL container storage](https://hub.docker.com/_/postgres).
+Images are pinned by digest in Dockerfile/Compose; pgx is pinned with module checksums. sqlc generation is pinned to v1.31.1 in the command above. Tool references: [Goose SQL annotations](https://pressly.github.io/goose/documentation/annotations/), [pgxpool](https://pkg.go.dev/github.com/jackc/pgx/v5/pgxpool), [PostgreSQL container storage](https://hub.docker.com/_/postgres).
