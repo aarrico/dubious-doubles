@@ -1,0 +1,16 @@
+{
+  "name": "dubious-doubles-pokepc-export",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.6.0",
+  "scripts": {
+    "export": "node export.mjs",
+    "test": "node --test export.test.mjs"
+  },
+  "dependencies": {
+    "@pokepc/dataset": "8.2.0"
+  }
+}

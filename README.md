@@ -88,6 +88,15 @@ Inspect service logs with `docker compose logs api migrate db`.
 
 Database data persists in a named Docker volume across shutdowns and container recreation. To deliberately delete the local database and start over, run **`make reset`**. This is destructive; ordinary shutdown uses `make down`.
 
+## Catalog ingestion scaffold
+
+[PokéPC export tooling](tools/pokepc-export/README.md) prepares pinned Champions
+Pokémon, move, ability, item, and battle-state catalogs plus shared type and nature
+references using Node. A separate Go command verifies the local snapshot without
+npm, network access, or database writes. Database loading and complete
+field/form validation are not implemented yet; this tooling is not part of API
+startup.
+
 ## Development and checks
 
 ```sh
@@ -114,10 +123,13 @@ Use `make fmt` to apply Go formatting, then review and stage the changes you wan
 ```text
 backend/
   cmd/api/          API entry point and server lifecycle
+  cmd/import-catalog/ Offline snapshot verification (database import pending)
   internal/config/  Configuration and validation
   internal/httpapi/ HTTP health handlers
+  internal/ingest/  Snapshot integrity checks and ingestion scaffold
   migrations/       SQL migrations
   scripts/          Backend verification script
+tools/pokepc-export/ Pinned Node exporter, tests, and usage guide
 scripts/            Compose integration checks
 .githooks/          Local Git hooks
 .github/workflows/  CI jobs

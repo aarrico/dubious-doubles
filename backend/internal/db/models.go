@@ -113,11 +113,13 @@ func (ns NullElementalType) Value() (driver.Value, error) {
 }
 
 type Ability struct {
-	ID            int32
-	Name          string
-	Effect        string
-	EffectShort   pgtype.Text
-	GenIntroduced pgtype.Int2
+	ID                int32
+	CatalogSnapshotID int32
+	Slug              string
+	Name              string
+	Effect            string
+	EffectShort       pgtype.Text
+	GenIntroduced     pgtype.Int2
 }
 
 type Ailment struct {
@@ -126,42 +128,56 @@ type Ailment struct {
 	Effect string
 }
 
+type CatalogSnapshot struct {
+	ID             int32
+	SourcePackage  string
+	SourceVersion  string
+	GameSet        string
+	Locale         string
+	LockfileSha256 string
+	ManifestSha256 string
+	ImportedAt     pgtype.Timestamptz
+}
+
 type Item struct {
-	ID          int32
-	Name        pgtype.Text
-	FlingPower  pgtype.Int2
-	FlingEffect pgtype.Text
-	Category    string
-	// might just need to filter on this in pokeapi on ingestion
-	Attribute pgtype.Text
-	Effect    string
+	ID                int32
+	CatalogSnapshotID int32
+	Slug              string
+	Name              pgtype.Text
+	FlingPower        pgtype.Int2
+	FlingEffect       pgtype.Text
+	Category          string
+	Attribute         pgtype.Text
+	Effect            string
 }
 
 type Move struct {
-	ID             int32
-	Name           pgtype.Text
-	Accuracy       pgtype.Int2
-	EffectChance   pgtype.Int2
-	Pp             int16
-	Priority       int16
-	Power          int16
-	DamageClass    DamageClass
-	Effect         pgtype.Text
-	AilmentID      pgtype.Int4
-	MoveCategoryID pgtype.Int4
-	MinHits        pgtype.Int2
-	MaxHits        pgtype.Int2
-	MinTurns       pgtype.Int2
-	MaxTurns       pgtype.Int2
-	Drain          pgtype.Int2
-	Healing        pgtype.Int2
-	CritRate       pgtype.Int2
-	AilmentChance  pgtype.Int2
-	FlinchChance   pgtype.Int2
-	StatChance     pgtype.Int2
-	StatChanges    []byte
-	Target         pgtype.Int4
-	Type           NullElementalType
+	ID                int32
+	CatalogSnapshotID int32
+	Slug              string
+	Name              pgtype.Text
+	Accuracy          pgtype.Int2
+	EffectChance      pgtype.Int2
+	Pp                int16
+	Priority          int16
+	Power             int16
+	DamageClass       DamageClass
+	Effect            pgtype.Text
+	AilmentID         pgtype.Int4
+	MoveCategoryID    pgtype.Int4
+	MinHits           pgtype.Int2
+	MaxHits           pgtype.Int2
+	MinTurns          pgtype.Int2
+	MaxTurns          pgtype.Int2
+	Drain             pgtype.Int2
+	Healing           pgtype.Int2
+	CritRate          pgtype.Int2
+	AilmentChance     pgtype.Int2
+	FlinchChance      pgtype.Int2
+	StatChance        pgtype.Int2
+	StatChanges       []byte
+	Target            pgtype.Int4
+	Type              NullElementalType
 }
 
 type MoveCategory struct {
@@ -177,25 +193,54 @@ type MoveTarget struct {
 }
 
 type Pokemon struct {
-	ID        int32
-	Name      string
-	Type1     ElementalType
-	Type2     NullElementalType
-	BaseHp    int16
-	BaseAtk   int16
-	BaseDef   int16
-	BaseSpatk int16
-	BaseSpdef int16
-	BaseSpeed int16
-	Order     int32
-	Height    pgtype.Int2
-	Weight    pgtype.Int2
+	ID                int32
+	CatalogSnapshotID int32
+	// PokéPC id; stable within the owning snapshot, unlike championsId.
+	Slug      string
+	DexNumber int32
+	// Optional upstream championsId; cosmetic forms can share this value.
+	ChampionsID      pgtype.Text
+	Name             string
+	FormName         pgtype.Text
+	IsDefault        bool
+	IsBattleOnlyForm bool
+	IsCosmeticForm   bool
+	// Mapped from baseSpecies; NULL when the source has no base species. Not a transformation prerequisite.
+	BaseSpeciesID pgtype.Int4
+	// True when the source explicitly supplies a learnset, including an empty array; false when omitted. No inheritance is inferred.
+	LearnsetKnown bool
+	Type1         ElementalType
+	Type2         NullElementalType
+	BaseHp        int16
+	BaseAtk       int16
+	BaseDef       int16
+	BaseSpatk     int16
+	BaseSpdef     int16
+	BaseSpeed     int16
+	// Centimeters; importer must convert if source units differ.
+	Height pgtype.Int2
+	// Units of 10 grams (kilograms times 100); importer must convert if source units differ.
+	Weight pgtype.Int4
 }
 
 type PokemonAbility struct {
-	ID         int32
-	PokemonID  int32
-	AbilityID  int32
-	Slot       int16
-	Generation pgtype.Int2
+	ID                int32
+	CatalogSnapshotID int32
+	PokemonID         int32
+	AbilityID         int32
+	// PokéPC ability1 = 1, ability2 = 2, abilityHidden = 3. Preserve source slots, including gaps.
+	Slot int16
+}
+
+// Source baseForms edges, from base form to resulting form; not verified Champions transformation conditions.
+type PokemonFormRelationship struct {
+	CatalogSnapshotID int32
+	FromPokemonID     int32
+	ToPokemonID       int32
+}
+
+type PokemonMove struct {
+	CatalogSnapshotID int32
+	PokemonID         int32
+	MoveID            int32
 }
